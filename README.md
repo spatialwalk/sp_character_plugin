@@ -15,7 +15,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  sp_character_plugin: ^1.0.0-beta.41
+  sp_character_plugin: ^1.0.0-beta.42
 ```
 
 Then run:

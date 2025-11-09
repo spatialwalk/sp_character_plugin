@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'sp_character_plugin'
-  s.version          = '1.0.0-beta.41'
+  s.version          = '1.0.0-beta.42'
   s.summary          = 'A Flutter plugin for character management on iOS 16+'
   s.description      = <<-DESC
 A Flutter plugin that provides character management functionality specifically designed for iOS 16 and above.
