@@ -85,6 +85,8 @@ unlinked_spec.ds
 **/ios/Flutter/flutter_export_environment.sh
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/Frameworks/SPAvatarKit.xcframework/
+**/ios/Resources/
 
 # macOS
 **/Flutter/ephemeral/
