@@ -1,0 +1,10 @@
+analysis_options.yaml
+*.iml
+.DS_Store
+.vscode/
+scripts/
+example/build/
+example/ios/Podfile.lock
+example/ios/xcodebuild.log
+ios/Frameworks/
+ios/Resources/
