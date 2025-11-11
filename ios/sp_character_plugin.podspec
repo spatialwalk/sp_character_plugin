@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'sp_character_plugin'
-  s.version          = '1.0.0-beta.42'
+  s.version          = '1.0.0-beta.43'
   s.summary          = 'A Flutter plugin for character management on iOS 16+'
   s.description      = <<-DESC
 A Flutter plugin that provides character management functionality specifically designed for iOS 16 and above.
@@ -36,7 +36,7 @@ A Flutter plugin that provides character management functionality specifically d
     
     # Download fresh framework
     echo "Downloading SPAvatarKit.xcframework..."
-    curl -L -o SPAvatarKit.zip "https://character-resource-bj-1373098193.cos.ap-beijing.myqcloud.com/xcframework/SPAvatarKit-20251106_133649.zip"
+    curl -L -o SPAvatarKit.zip "https://character-resource-bj-1373098193.cos.ap-beijing.myqcloud.com/xcframework/SPAvatarKit-20251111_094022.zip"
     unzip -q SPAvatarKit.zip
     mkdir -p Frameworks
     mv SPAvatarKit.xcframework Frameworks/

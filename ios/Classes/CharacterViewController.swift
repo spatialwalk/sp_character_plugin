@@ -69,9 +69,7 @@ class CharacterViewController: UIViewController {
         guard characterManager != nil else { return }
         characterManager.setPlayerVolume(volume)
     }
-    
-    // MARK: - Private
-    
+        
     private func setupCharacterView(backgroundImage: UIImage?, isBackgroundOpaque: Bool) {
         guard characterManager != nil else { return }
 
@@ -82,11 +80,6 @@ class CharacterViewController: UIViewController {
         let characterView = SPCharacterView(characterManager: characterManager, backgroundImage: backgroundImage, isOpaque: isBackgroundOpaque)
         let hostingController = UIHostingController(rootView: characterView)
         hostingController.view.backgroundColor = .clear
-        hostingController.view.alpha = 0.0
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            // 300ms delay for flutter purple flash
-            hostingController.view.alpha = 1.0
-        }
         characterViewController = hostingController
         addChild(hostingController)
         view.addSubview(hostingController.view)

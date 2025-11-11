@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0-beta.42]
+## [1.0.0-beta.43]
 ### Added
 - Added method `supportsCurrentDevice` to check if SDK is available on current device
 ### Updated
