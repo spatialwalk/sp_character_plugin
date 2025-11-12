@@ -6,6 +6,8 @@ protocol CharacterViewControllerDelegate: AnyObject {
     func characterViewController(_ characterViewController: CharacterViewController, didReceivedEvent event: PlatformEvent, params: Any) -> Void
 }
 
+private var loadedCharacters: [String: SPAvatar.Character] = [:]
+
 /// 角色视图控制器
 class CharacterViewController: UIViewController {
     
@@ -19,12 +21,24 @@ class CharacterViewController: UIViewController {
     // MARK: - Public
     
     func loadCharacter(_ characterId: String, backgroundImage: UIImage?, isBackgroundOpaque: Bool) async {
-        let character = await SPCharacterLoader.shared.loadCharacter(characterId) { [weak self] state in
-            guard let self else { return }
+        var character: SPAvatar.Character?
+        
+        let loadedCharacter = loadedCharacters[characterId]
+        if loadedCharacter != nil {
             Task { @MainActor in
-                self.handleLoadState(state)
+                self.handleLoadState(.completed)
             }
+            character = loadedCharacter
+        } else {
+            character = await SPCharacterLoader.shared.loadCharacter(characterId) { [weak self] state in
+                guard let self else { return }
+                Task { @MainActor in
+                    self.handleLoadState(state)
+                }
+            }
+            loadedCharacters[characterId] = character
         }
+
         guard let character else { return }
         self.characterManager = SPCharacterManager(character: character, driveServiceType: .animation)
         self.characterManager.delegate = self
