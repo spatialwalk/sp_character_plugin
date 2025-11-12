@@ -48,6 +48,12 @@ android {
     }
 
     dependencies {
+        // SPAvatarKit SDK
+        implementation("ai.spatialwalk:avatarkit:0.0.1")
+        
+        // Coroutines
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+        
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.mockito:mockito-core:5.0.0")
     }

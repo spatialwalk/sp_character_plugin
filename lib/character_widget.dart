@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -121,8 +123,23 @@ class CharacterController {
     : _key = key;
 
   /// 获取当前状态，如果 widget 未初始化则返回 null
-  _CharacterWidgetState? get _state =>
-      _key.currentState as _CharacterWidgetState?;
+  _CharacterWidgetState? get _state {
+    final state = _key.currentState as _CharacterWidgetState?;
+    debugPrint('[CharacterController] Getting _state: $state, key: $_key, currentState: ${_key.currentState}');
+    return state;
+  }
+
+  /// 等待 Widget 初始化完成
+  Future<_CharacterWidgetState?> _waitForState({int maxAttempts = 50}) async {
+    for (int i = 0; i < maxAttempts; i++) {
+      final state = _state;
+      if (state != null && state.mounted) {
+        return state;
+      }
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    return null;
+  }
 
   /// 加载数字人数据
   Future<void> loadCharacter(
@@ -130,38 +147,66 @@ class CharacterController {
     Uint8List? backgroundImage,
     bool isBackgroundOpaque = true,
   }) async {
-    await _state?.loadCharacter(characterId, backgroundImage: backgroundImage, isBackgroundOpaque: isBackgroundOpaque);
+    final state = await _waitForState();
+    if (state == null) {
+      throw Exception('CharacterWidget not initialized after waiting');
+    }
+    await state.loadCharacter(characterId, backgroundImage: backgroundImage, isBackgroundOpaque: isBackgroundOpaque);
   }
 
   /// 预加载数字人数据
   Future<void> preloadCharacter(String characterId) async {
-    await _state?.preloadCharacter(characterId);
+    final state = await _waitForState();
+    if (state == null) {
+      throw Exception('CharacterWidget not initialized after waiting');
+    }
+    await state.preloadCharacter(characterId);
   }
 
   /// 删除数字人数据
   /// [characterId] 数字人ID
   Future<void> deleteCharacterAssets(String characterId) async {
-    await _state?.deleteCharacterAssets(characterId);
+    final state = await _waitForState();
+    if (state == null) {
+      throw Exception('CharacterWidget not initialized after waiting');
+    }
+    await state.deleteCharacterAssets(characterId);
   }
 
   // 删除全部数字人数据
   Future<void> deleteAllCharacterAssets() async {
-    await _state?.deleteAllCharacterAssets();
+    final state = await _waitForState();
+    if (state == null) {
+      throw Exception('CharacterWidget not initialized after waiting');
+    }
+    await state.deleteAllCharacterAssets();
   }
 
   /// 开始数字人对话
   Future<void> start() async {
-    await _state?.start();
+    final state = await _waitForState();
+    if (state == null) {
+      throw Exception('CharacterWidget not initialized after waiting');
+    }
+    await state.start();
   }
 
   /// 关闭数字人对话
   Future<void> close({bool shouldCleanup = false}) async {
-    await _state?.close(shouldCleanup: shouldCleanup);
+    final state = await _waitForState();
+    if (state == null) {
+      throw Exception('CharacterWidget not initialized after waiting');
+    }
+    await state.close(shouldCleanup: shouldCleanup);
   }
 
   /// 打断当前对话
   Future<void> interrupt() async {
-    await _state?.interrupt();
+    final state = await _waitForState();
+    if (state == null) {
+      throw Exception('CharacterWidget not initialized after waiting');
+    }
+    await state.interrupt();
   }
 
   /// 发送音频数据
@@ -169,13 +214,21 @@ class CharacterController {
   /// [end] 是否结束
   /// 返回对话 ID
   Future<String> sendAudioData(Uint8List audioData, bool end) async {
-    return await _state?.sendAudioData(audioData, end) ?? '';
+    final state = await _waitForState();
+    if (state == null) {
+      throw Exception('CharacterWidget not initialized after waiting');
+    }
+    return await state.sendAudioData(audioData, end);
   }
 
   /// 设置数字人音量
   /// [volume] 音量范围 [0.0, 1.0]
   Future<void> setVolume(double volume) async {
-    await _state?.setVolume(volume);
+    final state = await _waitForState();
+    if (state == null) {
+      throw Exception('CharacterWidget not initialized after waiting');
+    }
+    await state.setVolume(volume);
   }
 
   /// 获取当前SDK设置状态
@@ -745,18 +798,46 @@ class _CharacterWidgetState extends State<CharacterWidget> with CharacterWidgetC
       child: IntrinsicWidth(
         child: AspectRatio(
           aspectRatio: 1.0,
-          child: UiKitView(
-            viewType: 'sp_character_view',
-            layoutDirection: TextDirection.ltr,
-            creationParams: {
-              'viewId': hashCode, 
-              'sessionToken': _sessionToken,
-              'channelName': _channelName,
-            },
-            creationParamsCodec: const StandardMessageCodec(),
-          ),
+          child: _buildPlatformView(),
         ),  
       ),
     );
+  }
+
+  Widget _buildPlatformView() {
+    final creationParams = {
+      'viewId': hashCode, 
+      'sessionToken': _sessionToken,
+      'channelName': _channelName,
+    };
+
+    debugPrint('[CharacterWidget] Building platform view with params: $creationParams');
+
+    if (kIsWeb) {
+      // Web platform not supported
+      return const Center(
+        child: Text('Platform view not supported on web'),
+      );
+    } else if (Platform.isAndroid) {
+      debugPrint('[CharacterWidget] Creating AndroidView');
+      return AndroidView(
+        viewType: 'sp_character_view',
+        layoutDirection: TextDirection.ltr,
+        creationParams: creationParams,
+        creationParamsCodec: const StandardMessageCodec(),
+      );
+    } else if (Platform.isIOS) {
+      debugPrint('[CharacterWidget] Creating UiKitView');
+      return UiKitView(
+        viewType: 'sp_character_view',
+        layoutDirection: TextDirection.ltr,
+        creationParams: creationParams,
+        creationParamsCodec: const StandardMessageCodec(),
+      );
+    } else {
+      return const Center(
+        child: Text('Platform not supported'),
+      );
+    }
   }
 }
