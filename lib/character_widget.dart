@@ -166,47 +166,27 @@ class CharacterController {
   /// 删除数字人数据
   /// [characterId] 数字人ID
   Future<void> deleteCharacterAssets(String characterId) async {
-    final state = await _waitForState();
-    if (state == null) {
-      throw Exception('CharacterWidget not initialized after waiting');
-    }
-    await state.deleteCharacterAssets(characterId);
+    await _state?.deleteCharacterAssets(characterId);
   }
 
   // 删除全部数字人数据
   Future<void> deleteAllCharacterAssets() async {
-    final state = await _waitForState();
-    if (state == null) {
-      throw Exception('CharacterWidget not initialized after waiting');
-    }
-    await state.deleteAllCharacterAssets();
+    await _state?.deleteAllCharacterAssets();
   }
 
   /// 开始数字人对话
   Future<void> start() async {
-    final state = await _waitForState();
-    if (state == null) {
-      throw Exception('CharacterWidget not initialized after waiting');
-    }
-    await state.start();
+    await _state?.start();
   }
 
   /// 关闭数字人对话
   Future<void> close({bool shouldCleanup = false}) async {
-    final state = await _waitForState();
-    if (state == null) {
-      throw Exception('CharacterWidget not initialized after waiting');
-    }
-    await state.close(shouldCleanup: shouldCleanup);
+    await _state?.close(shouldCleanup: shouldCleanup);
   }
 
   /// 打断当前对话
   Future<void> interrupt() async {
-    final state = await _waitForState();
-    if (state == null) {
-      throw Exception('CharacterWidget not initialized after waiting');
-    }
-    await state.interrupt();
+    await _state?.interrupt();
   }
 
   /// 发送音频数据
@@ -214,21 +194,13 @@ class CharacterController {
   /// [end] 是否结束
   /// 返回对话 ID
   Future<String> sendAudioData(Uint8List audioData, bool end) async {
-    final state = await _waitForState();
-    if (state == null) {
-      throw Exception('CharacterWidget not initialized after waiting');
-    }
-    return await state.sendAudioData(audioData, end);
+    return await _state?.sendAudioData(audioData, end) ?? '';
   }
 
   /// 设置数字人音量
   /// [volume] 音量范围 [0.0, 1.0]
   Future<void> setVolume(double volume) async {
-    final state = await _waitForState();
-    if (state == null) {
-      throw Exception('CharacterWidget not initialized after waiting');
-    }
-    await state.setVolume(volume);
+    await _state?.setVolume(volume);
   }
 
   /// 获取当前SDK设置状态
