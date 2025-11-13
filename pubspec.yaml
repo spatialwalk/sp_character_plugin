@@ -1,6 +1,6 @@
 name: sp_character_plugin
-description: "A Flutter plugin for character management on iOS 16+ with SPAvatarKit integration"
-version: 1.0.0-beta.45
+description: "A Flutter plugin for iOS and Android with SPAvatarKit integration."
+version: 1.0.0-beta.46
 homepage: https://github.com/spatialwalk/sp_character_plugin
 
 environment:

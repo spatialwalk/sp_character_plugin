@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.0-beta.46]
+### Added
+- Added Android support
+
 ## [1.0.0-beta.45]
 ### Added
 - Added method `supportsCurrentDevice` to check if SDK is available on current device
