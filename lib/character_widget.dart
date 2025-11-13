@@ -147,20 +147,19 @@ class CharacterController {
     Uint8List? backgroundImage,
     bool isBackgroundOpaque = true,
   }) async {
-    final state = await _waitForState();
-    if (state == null) {
-      throw Exception('CharacterWidget not initialized after waiting');
+    // if Platform.isAndroid is true, wait for the state to be initialized
+    if (Platform.isAndroid && _state == null) {
+      final state = await _waitForState();
+      if (state == null) {
+        throw Exception('CharacterWidget not initialized after waiting 5 seconds');
+      }
     }
-    await state.loadCharacter(characterId, backgroundImage: backgroundImage, isBackgroundOpaque: isBackgroundOpaque);
+    await _state?.loadCharacter(characterId, backgroundImage: backgroundImage, isBackgroundOpaque: isBackgroundOpaque);
   }
 
   /// 预加载数字人数据
   Future<void> preloadCharacter(String characterId) async {
-    final state = await _waitForState();
-    if (state == null) {
-      throw Exception('CharacterWidget not initialized after waiting');
-    }
-    await state.preloadCharacter(characterId);
+    await _state?.preloadCharacter(characterId);
   }
 
   /// 删除数字人数据

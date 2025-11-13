@@ -50,7 +50,7 @@ android {
 
     dependencies {
         // SPAvatarKit SDK
-        implementation("ai.spatialwalk:avatarkit:0.0.3")
+        implementation("ai.spatialwalk:avatarkit:0.0.4")
         
         // Coroutines
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
