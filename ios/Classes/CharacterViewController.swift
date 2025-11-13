@@ -6,6 +6,8 @@ protocol CharacterViewControllerDelegate: AnyObject {
     func characterViewController(_ characterViewController: CharacterViewController, didReceivedEvent event: PlatformEvent, params: Any) -> Void
 }
 
+private var loadedCharacters: [String: SPAvatar.Character] = [:]
+
 /// 角色视图控制器
 class CharacterViewController: UIViewController {
     
@@ -19,12 +21,24 @@ class CharacterViewController: UIViewController {
     // MARK: - Public
     
     func loadCharacter(_ characterId: String, backgroundImage: UIImage?, isBackgroundOpaque: Bool) async {
-        let character = await SPCharacterLoader.shared.loadCharacter(characterId) { [weak self] state in
-            guard let self else { return }
+        var character: SPAvatar.Character?
+        
+        let loadedCharacter = loadedCharacters[characterId]
+        if loadedCharacter != nil {
             Task { @MainActor in
-                self.handleLoadState(state)
+                self.handleLoadState(.completed)
             }
+            character = loadedCharacter
+        } else {
+            character = await SPCharacterLoader.shared.loadCharacter(characterId) { [weak self] state in
+                guard let self else { return }
+                Task { @MainActor in
+                    self.handleLoadState(state)
+                }
+            }
+            loadedCharacters[characterId] = character
         }
+
         guard let character else { return }
         self.characterManager = SPCharacterManager(character: character, driveServiceType: .animation)
         self.characterManager.delegate = self
@@ -69,9 +83,7 @@ class CharacterViewController: UIViewController {
         guard characterManager != nil else { return }
         characterManager.setPlayerVolume(volume)
     }
-    
-    // MARK: - Private
-    
+        
     private func setupCharacterView(backgroundImage: UIImage?, isBackgroundOpaque: Bool) {
         guard characterManager != nil else { return }
 
@@ -82,11 +94,6 @@ class CharacterViewController: UIViewController {
         let characterView = SPCharacterView(characterManager: characterManager, backgroundImage: backgroundImage, isOpaque: isBackgroundOpaque)
         let hostingController = UIHostingController(rootView: characterView)
         hostingController.view.backgroundColor = .clear
-        hostingController.view.alpha = 0.0
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            // 300ms delay for flutter purple flash
-            hostingController.view.alpha = 1.0
-        }
         characterViewController = hostingController
         addChild(hostingController)
         view.addSubview(hostingController.view)
