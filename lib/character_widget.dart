@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -121,8 +123,23 @@ class CharacterController {
     : _key = key;
 
   /// 获取当前状态，如果 widget 未初始化则返回 null
-  _CharacterWidgetState? get _state =>
-      _key.currentState as _CharacterWidgetState?;
+  _CharacterWidgetState? get _state {
+    final state = _key.currentState as _CharacterWidgetState?;
+    debugPrint('[CharacterController] Getting _state: $state, key: $_key, currentState: ${_key.currentState}');
+    return state;
+  }
+
+  /// 等待 Widget 初始化完成
+  Future<_CharacterWidgetState?> _waitForState({int maxAttempts = 50}) async {
+    for (int i = 0; i < maxAttempts; i++) {
+      final state = _state;
+      if (state != null && state.mounted) {
+        return state;
+      }
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    return null;
+  }
 
   /// 加载数字人数据
   Future<void> loadCharacter(
@@ -130,6 +147,13 @@ class CharacterController {
     Uint8List? backgroundImage,
     bool isBackgroundOpaque = true,
   }) async {
+    // if Platform.isAndroid is true, wait for the state to be initialized
+    if (Platform.isAndroid && _state == null) {
+      final state = await _waitForState();
+      if (state == null) {
+        throw Exception('CharacterWidget not initialized after waiting 5 seconds');
+      }
+    }
     await _state?.loadCharacter(characterId, backgroundImage: backgroundImage, isBackgroundOpaque: isBackgroundOpaque);
   }
 
@@ -745,18 +769,46 @@ class _CharacterWidgetState extends State<CharacterWidget> with CharacterWidgetC
       child: IntrinsicWidth(
         child: AspectRatio(
           aspectRatio: 1.0,
-          child: UiKitView(
-            viewType: 'sp_character_view',
-            layoutDirection: TextDirection.ltr,
-            creationParams: {
-              'viewId': hashCode, 
-              'sessionToken': _sessionToken,
-              'channelName': _channelName,
-            },
-            creationParamsCodec: const StandardMessageCodec(),
-          ),
+          child: _buildPlatformView(),
         ),  
       ),
     );
+  }
+
+  Widget _buildPlatformView() {
+    final creationParams = {
+      'viewId': hashCode, 
+      'sessionToken': _sessionToken,
+      'channelName': _channelName,
+    };
+
+    debugPrint('[CharacterWidget] Building platform view with params: $creationParams');
+
+    if (kIsWeb) {
+      // Web platform not supported
+      return const Center(
+        child: Text('Platform view not supported on web'),
+      );
+    } else if (Platform.isAndroid) {
+      debugPrint('[CharacterWidget] Creating AndroidView');
+      return AndroidView(
+        viewType: 'sp_character_view',
+        layoutDirection: TextDirection.ltr,
+        creationParams: creationParams,
+        creationParamsCodec: const StandardMessageCodec(),
+      );
+    } else if (Platform.isIOS) {
+      debugPrint('[CharacterWidget] Creating UiKitView');
+      return UiKitView(
+        viewType: 'sp_character_view',
+        layoutDirection: TextDirection.ltr,
+        creationParams: creationParams,
+        creationParamsCodec: const StandardMessageCodec(),
+      );
+    } else {
+      return const Center(
+        child: Text('Platform not supported'),
+      );
+    }
   }
 }
