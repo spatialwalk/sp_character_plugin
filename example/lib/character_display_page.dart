@@ -4,14 +4,12 @@ import 'package:sp_character_plugin/character_widget.dart';
 
 class CharacterDisplayPage extends StatefulWidget {
   final String characterName;
-  final CharacterController? preloadedController;
-  final GlobalKey<State<CharacterWidget>>? characterKey;
+  final String characterId;
 
   const CharacterDisplayPage({
     super.key,
     required this.characterName,
-    this.preloadedController,
-    this.characterKey,
+    required this.characterId,
   });
 
   @override
@@ -22,25 +20,35 @@ class _CharacterDisplayPageState extends State<CharacterDisplayPage> {
   late final CharacterController _characterController;
   late final GlobalKey<State<CharacterWidget>> _characterKey;
 
-  bool _isCharacterLoaded = true;
+  bool _isLoading = false;
   bool _isConnected = false;
 
   @override
   void initState() {
     super.initState();
-    
-    if (widget.preloadedController != null && widget.characterKey != null) {
-      _characterController = widget.preloadedController!;
-      _characterKey = widget.characterKey!;
-    } else {
-      _characterKey = GlobalKey<State<CharacterWidget>>();
-      _characterController = CharacterController(key: _characterKey);
+    _characterKey = GlobalKey<State<CharacterWidget>>();
+    _characterController = CharacterController(key: _characterKey);
+  }
+
+  Future<void> _loadCharacter() async { 
+    try {
+      await _characterController.loadCharacter(
+        widget.characterId,
+        backgroundImage: null,
+      );
+    } catch (e) {
+      debugPrint('Loading failed: $e');
     }
   }
 
   @override
-  void dispose() {
+  void deactivate() {
     _characterController.close(shouldCleanup: true);
+    super.deactivate();
+  }
+
+  @override
+  void dispose() {
     super.dispose();
   }
 
@@ -80,57 +88,64 @@ class _CharacterDisplayPageState extends State<CharacterDisplayPage> {
         backgroundColor: characterColor,
         foregroundColor: Colors.white,
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: 1.0,
-                child: Container(
-                  margin: const EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    border: Border.all(color: characterColor, width: 2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: CharacterWidget.createWithController(
-                      key: _characterKey,
-                      sessionToken: "",
-                      setUpStateChanged: (state) {
-                        debugPrint('Avatar ${widget.characterName} - SetUp state: $state');
-                      },
-                      loadStateChanged: (state, progress) {
-                        setState(() {
-                          _isCharacterLoaded = state == CharacterLoadState.completed;
-                        });
-                        debugPrint('Avatar ${widget.characterName} - Load state: $state, progress: $progress');
-                      },
-                      connectionStateChanged: (state) {
-                        setState(() {
-                          _isConnected = state == CharacterConnectionState.connected;
-                        });
-                        debugPrint('Avatar ${widget.characterName} - Connection state: $state');
-                      },
-                      conversationStateChanged: (state) {
-                        debugPrint('Avatar ${widget.characterName} - Conversation state: $state');
-                      },
-                      playerStateChanged: (state) {
-                        debugPrint('Avatar ${widget.characterName} - Player state: $state');
-                      },
-                      didEncounteredPlayerError: (error) {
-                        debugPrint('Avatar ${widget.characterName} - Player error: $error');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Player error: $error')),
-                        );
-                      },
+          Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 1.0,
+                    child: Container(
+                      margin: const EdgeInsets.all(10.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.1),
+                        border: Border.all(color: characterColor, width: 2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: CharacterWidget.createWithController(
+                          key: _characterKey,
+                          sessionToken: "",
+                          setUpStateChanged: (state) {
+                            // 在数字人组件 setup 好之后，才开始调用数字人方法                            
+                            if (state == CharacterSetUpState.successed) {
+                              _loadCharacter();
+                            }
+                          },
+                          loadStateChanged: (state, progress) {
+                            setState(() {
+                              _isLoading = !(state == CharacterLoadState.completed 
+                              || state == CharacterLoadState.fetchCharacterMetaFailed 
+                              || state == CharacterLoadState.downloadAssetsFailed);
+                            });
+                            debugPrint('Avatar Load state: $state, progress: $progress');
+                          },
+                          connectionStateChanged: (state) {
+                            setState(() {
+                              _isConnected = state == CharacterConnectionState.connected;
+                            });
+                            debugPrint('Avatar Connection state: $state');
+                          },
+                          conversationStateChanged: (state) {
+                            debugPrint('Avatar Conversation state: $state');
+                          },
+                          playerStateChanged: (state) {
+                            debugPrint('Avatar Player state: $state');
+                          },
+                          didEncounteredPlayerError: (error) {
+                            debugPrint('Avatar Player error: $error');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Player error: $error')),
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
 
           Container(
             padding: const EdgeInsets.all(16.0),
@@ -140,7 +155,7 @@ class _CharacterDisplayPageState extends State<CharacterDisplayPage> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _isCharacterLoaded ? _toggleConnection : null,
+                    onPressed: !_isLoading ? _toggleConnection : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _isConnected ? Colors.red : Colors.green,
                       foregroundColor: Colors.white,
@@ -231,6 +246,32 @@ class _CharacterDisplayPageState extends State<CharacterDisplayPage> {
               ],
             ),
           ),
+            ],
+          ),
+          
+          if (_isLoading)
+            Container(
+              color: Colors.black.withValues(alpha: 0.7),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Loading Avatar ${widget.characterName}...',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );

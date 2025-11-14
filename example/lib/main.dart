@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:sp_character_plugin/sp_character_plugin.dart';
 import 'home_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SpCharacterPlugin().setUpEnvironment('develop');
   runApp(const MyApp());
 }
 

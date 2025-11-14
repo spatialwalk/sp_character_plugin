@@ -57,12 +57,11 @@ class CharacterPlatformView: NSObject, FlutterPlatformView, CharacterViewControl
         super.init()
         _characterVC.delegate = self
         _characterVC.view.frame = frame
-        
-        AvatarSDK.shared.setupIfNeeded(sessionToken: sessionToken)
-        
         channel.setMethodCallHandler { [weak self] call, result in
             self?.handleFlutterCall(call, result: result)
         }
+        AvatarSDK.shared.setup(sessionToken: sessionToken)
+        channel.invokeMethod("setUpState", arguments: AvatarSDK.shared.setUpState.rawValue)
     }
     
     func view() -> UIView {
@@ -168,21 +167,14 @@ class AvatarSDK: SPAvatarSDKDelegate {
 
     private init() {}
 
-    private var onceToken = false
+    private(set) var setUpState: PlatformSetUpState = .notSetUp
 
-    func setupIfNeeded(sessionToken: String) {
-        guard !onceToken else { return }
-        onceToken = true
+    func setup(sessionToken: String) {
         SPAvatarSDK.shared.setup(sessionToken: sessionToken, configuration: SPAvatarSDK.Configuration(), delegate: self)
-    }
-
-    private(set) var setUpState: PlatformSetUpState = .successed
-
-    func avatarSDKDidStarted() {
         setUpState = .successed
     }
     
-    func avatarSDKFailedToStart() {
-        setUpState = .notSetUp
-    }
+    func avatarSDKDidStarted() {}
+    
+    func avatarSDKFailedToStart() {}
 }

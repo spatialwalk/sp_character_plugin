@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'sp_character_plugin'
-  s.version          = '1.0.0-beta.47'
+  s.version          = '1.0.0-beta.48'
   s.summary          = 'A Flutter plugin for SPAvatarKit.'
   s.description      = 'A Flutter plugin that provides iOS and Android integration for SPAvatarKit.'
   s.homepage         = 'https://github.com/spatialwalk/sp_character_plugin'

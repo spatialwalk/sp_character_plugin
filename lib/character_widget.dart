@@ -121,24 +121,14 @@ class CharacterController {
 
   CharacterController({required GlobalKey<State<CharacterWidget>> key})
     : _key = key;
-
-  /// 获取当前状态，如果 widget 未初始化则返回 null
-  _CharacterWidgetState? get _state {
+  
+  _CharacterWidgetState get _state {
     final state = _key.currentState as _CharacterWidgetState?;
+    if (state == null || !state.mounted) {
+      throw Exception('CharacterWidget not initialized or not mounted');
+    }
     debugPrint('[CharacterController] Getting _state: $state, key: $_key, currentState: ${_key.currentState}');
     return state;
-  }
-
-  /// 等待 Widget 初始化完成
-  Future<_CharacterWidgetState?> _waitForState({int maxAttempts = 50}) async {
-    for (int i = 0; i < maxAttempts; i++) {
-      final state = _state;
-      if (state != null && state.mounted) {
-        return state;
-      }
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
-    return null;
   }
 
   /// 加载数字人数据
@@ -147,50 +137,38 @@ class CharacterController {
     Uint8List? backgroundImage,
     bool isBackgroundOpaque = true,
   }) async {
-    if (_state == null) {
-      final state = await _waitForState();
-      if (state == null) {
-        throw Exception('CharacterWidget not initialized after waiting 5 seconds');
-      }
-    }
-    await _state?.loadCharacter(characterId, backgroundImage: backgroundImage, isBackgroundOpaque: isBackgroundOpaque);
+    await _state.loadCharacter(characterId, backgroundImage: backgroundImage, isBackgroundOpaque: isBackgroundOpaque);
   }
 
   /// 预加载数字人数据
   Future<void> preloadCharacter(String characterId) async {
-    await _state?.preloadCharacter(characterId);
+    await _state.preloadCharacter(characterId);
   }
 
   /// 删除数字人数据
   /// [characterId] 数字人ID
   Future<void> deleteCharacterAssets(String characterId) async {
-    await _state?.deleteCharacterAssets(characterId);
+    await _state.deleteCharacterAssets(characterId);
   }
 
   // 删除全部数字人数据
   Future<void> deleteAllCharacterAssets() async {
-    await _state?.deleteAllCharacterAssets();
+    await _state.deleteAllCharacterAssets();
   }
 
   /// 开始数字人对话
   Future<void> start() async {
-    if (_state == null) {
-      final state = await _waitForState();
-      if (state == null) {
-        throw Exception('CharacterWidget not initialized after waiting 5 seconds');
-      }
-    }
-    await _state?.start();
+    await _state.start();
   }
 
   /// 关闭数字人对话
   Future<void> close({bool shouldCleanup = false}) async {
-    await _state?.close(shouldCleanup: shouldCleanup);
+    await _state.close(shouldCleanup: shouldCleanup);
   }
 
   /// 打断当前对话
   Future<void> interrupt() async {
-    await _state?.interrupt();
+    await _state.interrupt();
   }
 
   /// 发送音频数据
@@ -198,33 +176,30 @@ class CharacterController {
   /// [end] 是否结束
   /// 返回对话 ID
   Future<String> sendAudioData(Uint8List audioData, bool end) async {
-    return await _state?.sendAudioData(audioData, end) ?? '';
+    return await _state.sendAudioData(audioData, end);
   }
 
   /// 设置数字人音量
   /// [volume] 音量范围 [0.0, 1.0]
   Future<void> setVolume(double volume) async {
-    await _state?.setVolume(volume);
+    await _state.setVolume(volume);
   }
 
   /// 获取当前SDK设置状态
-  CharacterSetUpState? get setUpState => _state?.setUpState;
+  CharacterSetUpState? get setUpState => _state.setUpState;
 
   /// 获取当前连接状态
-  CharacterConnectionState? get connectionState => _state?.connectionState;
+  CharacterConnectionState? get connectionState => _state.connectionState;
 
   /// 获取当前播放器状态
-  CharacterPlayerState? get playerState => _state?.playerState;
+  CharacterPlayerState? get playerState => _state.playerState;
 
   /// 获取当前对话状态
   CharacterConversationState? get conversationState =>
-      _state?.conversationState;
+      _state.conversationState;
 
   /// 获取错误信息
-  String? get errorMessage => _state?.errorMessage;
-
-  /// 检查控制器是否可用（widget 是否已初始化）
-  bool get isAvailable => _state != null;
+  String? get errorMessage => _state.errorMessage;
 }
 
 /// 数字人 Widget 的公共接口
@@ -392,35 +367,21 @@ class _CharacterWidgetState extends State<CharacterWidget> with CharacterWidgetC
     _channel.setMethodCallHandler((call) async {
       switch (call.method) {
         case 'setUpState':
-
-          /// SDK设置状态发生改变
           _handleSetUpStateUpdate(call.arguments);
           break;
-
         case 'loadCharacterState':
-
-          /// 数字人加载状态
           _handleLoadStateUpdate(call.arguments);
           break;
-
         case 'playerDidEncounteredError':
-
-          /// 播放器错误
           _handlePlayerError(call.arguments);
           break;
         case 'didUpdatedConnectionState':
-
-          /// 服务连接状态发生改变
           _handleConnectionStateUpdate(call.arguments);
           break;
         case 'didUpdatedConversationState':
-
-          /// 会话状态发生改变
           _handleConversationStateUpdate(call.arguments);
           break;
         case 'didUpdatedPlayerState':
-
-          /// 播放器状态发生改变
           _handlePlayerStateUpdate(call.arguments);
           break;
       }
@@ -447,6 +408,7 @@ class _CharacterWidgetState extends State<CharacterWidget> with CharacterWidgetC
       });
       return result == null;
     } catch (e) {
+      debugPrint('loadCharacter error: $e');
       return false;
     }
   }
@@ -589,7 +551,7 @@ class _CharacterWidgetState extends State<CharacterWidget> with CharacterWidgetC
     } else {
       newState = CharacterSetUpState.notSetUp;
     }
-
+    _setUpState = newState;    
     widget.setUpStateChanged?.call(newState);
   }
 
