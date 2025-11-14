@@ -1,13 +1,13 @@
 # sp_character_plugin
 
-A Flutter plugin for character management on iOS 16+ with SPAvatarKit integration.
+A Flutter plugin for iOS and Android with SPAvatarKit integration.
 
 ## Features
 
 - **Character Management**: Create, load, and manage 3D characters
 - **Real-time Animation**: Support for real-time character animation
-- **iOS 16+ Support**: Optimized for iOS 16 and above
-- **Dynamic Framework Loading**: Automatically downloads SPAvatarKit framework during installation
+- **iOS Support**: iOS 16.0 and above
+- **Android Support**: Android 7.0 (API level 24) and above
 
 ## Installation
 
@@ -15,7 +15,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  sp_character_plugin: ^1.0.0-beta.45
+  sp_character_plugin: ^1.0.0-beta.48
 ```
 
 Then run:
@@ -38,17 +38,6 @@ Add the following to your `ios/Podfile`:
 
 ```ruby
 platform :ios, '16.0'
-```
-
-### Privacy Permissions
-
-Add the following permissions to your `ios/Runner/Info.plist`:
-
-```xml
-<key>NSCameraUsageDescription</key>
-<string>This app needs camera access for character capture</string>
-<key>NSMicrophoneUsageDescription</key>
-<string>This app needs microphone access for audio processing</string>
 ```
 
 ## Usage
