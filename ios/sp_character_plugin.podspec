@@ -4,7 +4,9 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'sp_character_plugin'
-  s.version          = '1.0.0-beta.46'
+  s.version          = '1.0.0-beta.47'
+  s.summary          = 'A Flutter plugin for SPAvatarKit.'
+  s.description      = 'A Flutter plugin that provides iOS and Android integration for SPAvatarKit.'
   s.homepage         = 'https://github.com/spatialwalk/sp_character_plugin'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'spatialwalk.ai' => 'yuhang@spatialwalk.net' }
@@ -32,7 +34,7 @@ Pod::Spec.new do |s|
     
     # Download fresh framework
     echo "Downloading SPAvatarKit.xcframework..."
-    curl -L -o SPAvatarKit.zip "https://character-resource-bj-1373098193.cos.ap-beijing.myqcloud.com/xcframework/SPAvatarKit-20251111_094022.zip"
+    curl -L -o SPAvatarKit.zip "https://character-resource-bj-1373098193.cos.ap-beijing.myqcloud.com/xcframework/SPAvatarKit-20251114_092829.zip"
     unzip -q SPAvatarKit.zip
     mkdir -p Frameworks
     mv SPAvatarKit.xcframework Frameworks/

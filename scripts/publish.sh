@@ -12,7 +12,7 @@ echo "=========================================="
 PACKAGE_NAME="sp_character_plugin"
 
 # Version management - Update this when you want to release new versions
-VERSION="1.0.0-beta.46"
+VERSION="1.0.0-beta.47"
 
 # You can also use command line arguments to override version
 if [ "$1" = "version" ] && [ -n "$2" ]; then

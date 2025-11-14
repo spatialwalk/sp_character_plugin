@@ -147,8 +147,7 @@ class CharacterController {
     Uint8List? backgroundImage,
     bool isBackgroundOpaque = true,
   }) async {
-    // if Platform.isAndroid is true, wait for the state to be initialized
-    if (Platform.isAndroid && _state == null) {
+    if (_state == null) {
       final state = await _waitForState();
       if (state == null) {
         throw Exception('CharacterWidget not initialized after waiting 5 seconds');
@@ -175,6 +174,12 @@ class CharacterController {
 
   /// 开始数字人对话
   Future<void> start() async {
+    if (_state == null) {
+      final state = await _waitForState();
+      if (state == null) {
+        throw Exception('CharacterWidget not initialized after waiting 5 seconds');
+      }
+    }
     await _state?.start();
   }
 
