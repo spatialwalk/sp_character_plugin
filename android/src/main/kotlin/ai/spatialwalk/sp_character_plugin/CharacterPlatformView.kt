@@ -1,7 +1,7 @@
 package ai.spatialwalk.sp_character_plugin
 
+import ai.spatialwalk.avatarkit.AvatarKit
 import android.content.Context
-import android.graphics.Color
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
@@ -48,7 +48,9 @@ class CharacterPlatformView(
         // Initialize SDK if needed
         AvatarSDK.setupIfNeeded(context)
         AvatarSDK.setSessionToken(sessionToken)
-        
+
+        methodChannel.invokeMethod("setUpState", AvatarSDK.setupState.value)
+
         // Notify setup state
         onReceivedEvent(PlatformEvent.DID_UPDATED_CONNECTION_STATE, "disconnected")
     }
@@ -231,8 +233,9 @@ class CharacterPlatformView(
 object AvatarSDK {
     private const val TAG = "AvatarSDK"
     private var isInitialized = false
-    private var environment: ai.spatialwalk.avatarkit.AvatarKit.Environment =
-        ai.spatialwalk.avatarkit.AvatarKit.Environment.TEST
+    private var environment: AvatarKit.Environment = AvatarKit.Environment.TEST
+    var setupState = PlatformSetUpState.NOT_SET_UP
+        private set
 
     @Synchronized
     fun setupIfNeeded(context: Context) {
@@ -250,6 +253,7 @@ object AvatarSDK {
                 )
             )
             isInitialized = true
+            setupState = PlatformSetUpState.SUCCEEDED
             Log.d(TAG, "AvatarKit SDK initialized successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize AvatarKit SDK: ${e.message}", e)
