@@ -37,84 +37,85 @@ class CharacterViewController(
     /**
      * Load character with specified ID
      */
-    suspend fun loadCharacter(characterId: String, backgroundImage: ByteArray?, isBackgroundOpaque: Boolean) {
-            try {
-                // Initialize AvatarManager if not already done
-                try {
-                    AvatarManager.initialize(context)
-                } catch (e: Exception) {
-                    Log.d(TAG, "AvatarManager already initialized or error: ${e.message}")
-                }
+    suspend fun loadCharacter(
+        characterId: String,
+        backgroundImage: ByteArray?,
+        isBackgroundOpaque: Boolean
+    ) {
+        try {
+            AvatarManager.initialize(context)
 
-                // Notify preparing state
-                notifyLoadState("preparing", null)
+            // Notify preparing state
+            notifyLoadState("preparing", null)
 
-                // Load avatar
-                val avatar = AvatarManager.load(characterId) { progress ->
-                    when (progress) {
-                        is AvatarManager.LoadProgress.Downloading -> {
-                            notifyLoadState("downloading", progress.progress.toDouble())
-                        }
-                        is AvatarManager.LoadProgress.Completed -> {
-                            Log.d(TAG, "Avatar loaded successfully")
-                            notifyLoadState("completed", null)
-                        }
-                        is AvatarManager.LoadProgress.Failed -> {
-                            Log.e(TAG, "Failed to load avatar: ${progress.error.message}")
-                            notifyLoadState("downloadAssetsFailed", null)
-                        }
+            // Load avatar
+            val avatar = AvatarManager.load(characterId) { progress ->
+                when (progress) {
+                    is AvatarManager.LoadProgress.Downloading -> {
+                        notifyLoadState("downloading", progress.progress.toDouble())
+                    }
+
+                    is AvatarManager.LoadProgress.Completed -> {
+                        Log.d(TAG, "Avatar loaded successfully")
+                        notifyLoadState("completed", null)
+                    }
+
+                    is AvatarManager.LoadProgress.Failed -> {
+                        Log.e(TAG, "Failed to load avatar: ${progress.error.message}")
+                        notifyLoadState("downloadAssetsFailed", null)
                     }
                 }
-
-                // Create avatar view on main thread
-//                withContext(Dispatchers.Main) {
-                    avatarView = AvatarView(context)
-                    avatarView?.init(avatar, coroutineScope)
-                    avatarController = avatarView?.avatarController
-
-                    // Setup connection state listener
-                    avatarController?.onConnectionState = { state ->
-                        val stateString = when (state) {
-                            is AvatarController.ConnectionState.Disconnected -> "disconnected"
-                            is AvatarController.ConnectionState.Connecting -> "connecting"
-                            is AvatarController.ConnectionState.Connected -> "connected"
-                            is AvatarController.ConnectionState.Failed -> "error"
-                            else -> "disconnected"
-                        }
-                        delegate?.onReceivedEvent(
-                            PlatformEvent.DID_UPDATED_CONNECTION_STATE,
-                            stateString
-                        )
-                    }
-
-                    // Setup avatar state listener (maps to player state)
-                    avatarController?.onAvatarState = { state ->
-                        val stateString = when (state.name) {
-                            "Idle" -> "idle"
-                            "Playing" -> "playing"
-                            else -> "idle"
-                        }
-                        delegate?.onReceivedEvent(
-                            PlatformEvent.DID_UPDATED_PLAYER_STATE,
-                            stateString
-                        )
-                    }
-
-                    // Setup error listener
-                    avatarController?.onError = { error ->
-                        Log.e(TAG, "Avatar error: ${error.message}")
-                        delegate?.onReceivedEvent(
-                            PlatformEvent.PLAYER_DID_ENCOUNTERED_ERROR,
-                            "serviceError"
-                        )
-                    }
-
-                    notifyLoadState("completed", null)
-//                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error loading character: ${e.message}", e)
-                notifyLoadState("fetchCharacterMetaFailed", null)
             }
+
+            withContext(Dispatchers.Main) {
+                avatarView = AvatarView(context)
+                avatarView?.init(avatar, coroutineScope)
+                avatarView?.isOpaque = isBackgroundOpaque
+            }
+
+            avatarController = avatarView?.avatarController
+            // Setup connection state listener
+            avatarController?.onConnectionState = { state ->
+                val stateString = when (state) {
+                    is AvatarController.ConnectionState.Disconnected -> "disconnected"
+                    is AvatarController.ConnectionState.Connecting -> "connecting"
+                    is AvatarController.ConnectionState.Connected -> "connected"
+                    is AvatarController.ConnectionState.Failed -> "error"
+                    else -> "disconnected"
+                }
+                delegate?.onReceivedEvent(
+                    PlatformEvent.DID_UPDATED_CONNECTION_STATE,
+                    stateString
+                )
+            }
+
+            // Setup avatar state listener (maps to player state)
+            avatarController?.onAvatarState = { state ->
+                val stateString = when (state.name) {
+                    "Idle" -> "idle"
+                    "Playing" -> "playing"
+                    else -> "idle"
+                }
+                delegate?.onReceivedEvent(
+                    PlatformEvent.DID_UPDATED_PLAYER_STATE,
+                    stateString
+                )
+            }
+
+            // Setup error listener
+            avatarController?.onError = { error ->
+                Log.e(TAG, "Avatar error: ${error.message}")
+                delegate?.onReceivedEvent(
+                    PlatformEvent.PLAYER_DID_ENCOUNTERED_ERROR,
+                    "serviceError"
+                )
+            }
+
+            notifyLoadState("completed", null)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading character: ${e.message}", e)
+            notifyLoadState("fetchCharacterMetaFailed", null)
+        }
     }
 
     /**

@@ -46,11 +46,12 @@ android {
 
     defaultConfig {
         minSdk = 24
+        consumerProguardFiles("proguard-rules.pro")
     }
 
     dependencies {
         // SPAvatarKit SDK
-        implementation("ai.spatialwalk:avatarkit:0.0.4")
+        implementation("ai.spatialwalk:avatarkit:0.0.5")
         
         // Coroutines
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
