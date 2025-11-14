@@ -47,6 +47,7 @@ class CharacterPlatformView(
         
         // Initialize SDK if needed
         AvatarSDK.setupIfNeeded(context)
+        AvatarSDK.setSessionToken(sessionToken)
         
         // Notify setup state
         onReceivedEvent(PlatformEvent.DID_UPDATED_CONNECTION_STATE, "disconnected")
@@ -230,7 +231,7 @@ class CharacterPlatformView(
 object AvatarSDK {
     private const val TAG = "AvatarSDK"
     private var isInitialized = false
-    private var environment: ai.spatialwalk.avatarkit.AvatarKit.Environment = 
+    private var environment: ai.spatialwalk.avatarkit.AvatarKit.Environment =
         ai.spatialwalk.avatarkit.AvatarKit.Environment.TEST
 
     @Synchronized
@@ -238,7 +239,7 @@ object AvatarSDK {
         if (isInitialized) {
             return
         }
-        
+
         try {
             Log.d(TAG, "Initializing AvatarKit SDK")
             ai.spatialwalk.avatarkit.AvatarKit.initialize(
@@ -260,11 +261,7 @@ object AvatarSDK {
     }
 
     fun setSessionToken(token: String) {
-        try {
-            ai.spatialwalk.avatarkit.AvatarKit.sessionToken = token
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to set session token: ${e.message}", e)
-        }
+        ai.spatialwalk.avatarkit.AvatarKit.sessionToken = token
     }
 }
 
