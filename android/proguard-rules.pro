@@ -16,9 +16,3 @@
 # Keep annotations
 -keepattributes *Annotation*
 
-# If this package contains any data classes or models that might be serialized
--keepclassmembers class ai.spatialwalk.avatarkit.model.driveningress.** {
-    <init>(...);
-    <fields>;
-}
-
